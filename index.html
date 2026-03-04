@@ -3,77 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gelişmiş AR Sergi</title>
+    <title>Minimalist AR Sergi</title>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin: 0; overflow: hidden; font-family: sans-serif; background-color: #f8f9fa; }
 
-        /* Kırmızı Başlatma Butonu - 1 tık yukarı alındı (70px) */
+        /* Kırmızı Başlatma Butonu */
         #ar-button {
             position: absolute;
-            bottom: 70px; 
+            bottom: 100px; 
             left: 50%;
             transform: translateX(-50%);
-            padding: 20px 40px;
+            padding: 18px 36px;
             background-color: #e63946;
             color: white;
             border: none;
             border-radius: 50px;
             font-size: 18px;
             font-weight: bold;
-            box-shadow: 0 10px 25px rgba(230, 57, 70, 0.4);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
             z-index: 1000;
             cursor: pointer;
-            white-space: nowrap;
         }
 
-        /* Beyaz Fotoğraf Yardımcı Butonu */
-        #snapshot-helper {
-            display: none;
+        /* Küçük Yardımcı Not */
+        .hint {
             position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 75px;
-            height: 75px;
-            border-radius: 50%;
-            border: 5px solid white;
-            background: rgba(255, 255, 255, 0.3);
-            z-index: 1001;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-        }
-
-        /* Bilgi Paneli (Kullanıcıyı Yönlendiren) */
-        #info-panel {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.85);
-            color: white;
-            padding: 25px;
-            border-radius: 15px;
+            bottom: 60px;
+            width: 100%;
             text-align: center;
-            width: 80%;
-            max-width: 300px;
-            z-index: 2000;
-            pointer-events: none;
-            border: 1px solid #fff;
+            color: #666;
+            font-size: 12px;
+            z-index: 999;
         }
-
-        #info-panel b { color: #ffbe0b; display: block; margin-bottom: 10px; font-size: 20px; }
 
         #ar-element { --ar-button-display: none; width: 100%; height: 100vh; }
     </style>
 </head>
 <body>
-
-    <div id="info-panel">
-        <b>📸 HAZIRLIK</b>
-        Tuşlar 5 saniye gizlendi.<br><br>
-        Lütfen telefonun tuşlarıyla<br><b>EKRAN GÖRÜNTÜSÜ ALIN.</b>
-    </div>
 
     <model-viewer 
         id="ar-element"
@@ -84,45 +51,27 @@
         touch-action="pan-y">
         
         <button id="ar-button">🚀 SERGİYİ BAŞLAT</button>
-        <div id="snapshot-helper"></div>
+        <div class="hint">Fotoğraf çekmek için telefonunuzun ekran görüntüsü alma tuşlarını kullanın.</div>
 
     </model-viewer>
 
     <script>
         const viewer = document.querySelector("#ar-element");
         const arBtn = document.querySelector("#ar-button");
-        const snapBtn = document.querySelector("#snapshot-helper");
-        const infoPanel = document.querySelector("#info-panel");
 
         arBtn.addEventListener("click", () => {
             viewer.activateAR();
         });
 
-        // Durum takibi: AR'a girince butonu değiştir
+        // AR moduna girince butonu ve notu tamamen gizle
         viewer.addEventListener('ar-status', (event) => {
             if (event.detail.status === 'session-started') {
                 arBtn.style.display = 'none';
-                snapBtn.style.display = 'block';
+                document.querySelector(".hint").style.display = 'none';
             } else {
                 arBtn.style.display = 'block';
-                snapBtn.style.display = 'none';
-                infoPanel.style.display = 'none';
+                document.querySelector(".hint").style.display = 'block';
             }
-        });
-
-        // Temiz Ekran Görüntüsü Süreci
-        snapBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            
-            // Öğeleri Gizle
-            snapBtn.style.display = 'none';
-            infoPanel.style.display = 'block';
-
-            // 5 saniye sonra her şeyi eski haline getir
-            setTimeout(() => {
-                snapBtn.style.display = 'block';
-                infoPanel.style.display = 'none';
-            }, 5000);
         });
     </script>
 </body>
