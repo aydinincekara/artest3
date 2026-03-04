@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profesyonel AR Sergi</title>
+    <title>Gelişmiş AR Sergi</title>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; font-family: sans-serif; }
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-        /* AR Başlatma Butonu (Sadece başta görünür) */
+        /* Kırmızı Başlatma Butonu - 1 tık yukarı alındı (70px) */
         #ar-button {
             position: absolute;
-            bottom: 50px;
+            bottom: 70px; 
             left: 50%;
             transform: translateX(-50%);
             padding: 20px 40px;
@@ -19,47 +19,61 @@
             color: white;
             border: none;
             border-radius: 50px;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 25px rgba(230, 57, 70, 0.4);
             z-index: 1000;
+            cursor: pointer;
+            white-space: nowrap;
         }
 
-        /* Fotoğraf Çekme Yardımı Butonu (Sadece AR içinde görünür) */
+        /* Beyaz Fotoğraf Yardımcı Butonu */
         #snapshot-helper {
-            display: none; /* Başlangıçta gizli */
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 5px solid white;
-            background: rgba(255, 255, 255, 0.2);
-            z-index: 1001;
-        }
-
-        /* Bilgi Mesajı */
-        #msg {
             display: none;
             position: absolute;
-            top: 20%;
-            width: 100%;
-            text-align: center;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 20px 0;
-            z-index: 2000;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 5px solid white;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 1001;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
         }
 
-        /* Model Viewer'ın kendi butonlarını gizle */
-        #ar-element { --ar-button-display: none; }
+        /* Bilgi Paneli (Kullanıcıyı Yönlendiren) */
+        #info-panel {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            width: 80%;
+            max-width: 300px;
+            z-index: 2000;
+            pointer-events: none;
+            border: 1px solid #fff;
+        }
+
+        #info-panel b { color: #ffbe0b; display: block; margin-bottom: 10px; font-size: 20px; }
+
+        #ar-element { --ar-button-display: none; width: 100%; height: 100vh; }
     </style>
 </head>
 <body>
 
-    <div id="msg">📸 BUTONLAR GİZLENDİ! <br> Şimdi telefonun tuşlarıyla ekran görüntüsü al.</div>
+    <div id="info-panel">
+        <b>📸 HAZIRLIK</b>
+        Tuşlar 5 saniye gizlendi.<br><br>
+        Lütfen telefonun tuşlarıyla<br><b>EKRAN GÖRÜNTÜSÜ ALIN.</b>
+    </div>
 
     <model-viewer 
         id="ar-element"
@@ -67,11 +81,9 @@
         ar 
         ar-modes="webxr scene-viewer quick-look" 
         camera-controls 
-        touch-action="pan-y" 
-        style="width: 100%; height: 100vh;">
+        touch-action="pan-y">
         
         <button id="ar-button">🚀 SERGİYİ BAŞLAT</button>
-
         <div id="snapshot-helper"></div>
 
     </model-viewer>
@@ -80,37 +92,37 @@
         const viewer = document.querySelector("#ar-element");
         const arBtn = document.querySelector("#ar-button");
         const snapBtn = document.querySelector("#snapshot-helper");
-        const message = document.querySelector("#msg");
+        const infoPanel = document.querySelector("#info-panel");
 
-        // 1. Sergiyi Başlat butonu tetikleyici
         arBtn.addEventListener("click", () => {
             viewer.activateAR();
         });
 
-        // 2. AR Moduna girildiğini anlama ve butonları değiştirme
+        // Durum takibi: AR'a girince butonu değiştir
         viewer.addEventListener('ar-status', (event) => {
             if (event.detail.status === 'session-started') {
-                arBtn.style.display = 'none'; // Başlat butonunu gizle
-                snapBtn.style.display = 'block'; // Fotoğraf butonunu göster
+                arBtn.style.display = 'none';
+                snapBtn.style.display = 'block';
             } else {
                 arBtn.style.display = 'block';
                 snapBtn.style.display = 'none';
+                infoPanel.style.display = 'none';
             }
         });
 
-        // 3. Temiz Ekran Görüntüsü Hilesi
+        // Temiz Ekran Görüntüsü Süreci
         snapBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             
-            // Tüm butonları gizle
+            // Öğeleri Gizle
             snapBtn.style.display = 'none';
-            message.style.display = 'block';
+            infoPanel.style.display = 'block';
 
-            // 4 saniye sonra her şeyi geri getir
+            // 5 saniye sonra her şeyi eski haline getir
             setTimeout(() => {
                 snapBtn.style.display = 'block';
-                message.style.display = 'none';
-            }, 4000);
+                infoPanel.style.display = 'none';
+            }, 5000);
         });
     </script>
 </body>
