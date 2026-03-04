@@ -3,32 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Sergi - Profesyonel Mod</title>
+    <title>Profesyonel AR Sergi</title>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     <style>
-        /* Genel Konteynır */
-        body { margin: 0; overflow: hidden; background-color: #f0f0f0; }
+        body { margin: 0; overflow: hidden; font-family: sans-serif; }
 
-        /* AR Giriş Butonu - Alt Orta */
+        /* AR Başlatma Butonu (Sadece başta görünür) */
         #ar-button {
             position: absolute;
-            bottom: 120px;
+            bottom: 50px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 15px 30px;
-            background-color: #007bff;
+            padding: 20px 40px;
+            background-color: #e63946;
             color: white;
             border: none;
             border-radius: 50px;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            z-index: 999;
-            display: block;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            z-index: 1000;
         }
 
-        /* Fotoğraf Butonu - Alt Orta (AR içindeyken görünür) */
-        #snapshot-button {
+        /* Fotoğraf Çekme Yardımı Butonu (Sadece AR içinde görünür) */
+        #snapshot-helper {
+            display: none; /* Başlangıçta gizli */
             position: absolute;
             bottom: 30px;
             left: 50%;
@@ -36,31 +35,31 @@
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            border: 6px solid white;
+            border: 5px solid white;
             background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            z-index: 1000;
-            cursor: pointer;
-        }
-        
-        #snapshot-button:active { background: white; }
-
-        /* Bilgilendirme Notu */
-        #status {
-            position: absolute;
-            top: 20px;
-            width: 100%;
-            text-align: center;
-            color: white;
-            text-shadow: 1px 1px 5px black;
-            pointer-events: none;
             z-index: 1001;
         }
+
+        /* Bilgi Mesajı */
+        #msg {
+            display: none;
+            position: absolute;
+            top: 20%;
+            width: 100%;
+            text-align: center;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 20px 0;
+            z-index: 2000;
+        }
+
+        /* Model Viewer'ın kendi butonlarını gizle */
+        #ar-element { --ar-button-display: none; }
     </style>
 </head>
 <body>
 
-    <div id="status">Büstü zemine yerleştirin</div>
+    <div id="msg">📸 BUTONLAR GİZLENDİ! <br> Şimdi telefonun tuşlarıyla ekran görüntüsü al.</div>
 
     <model-viewer 
         id="ar-element"
@@ -68,42 +67,51 @@
         ar 
         ar-modes="webxr scene-viewer quick-look" 
         camera-controls 
-        interaction-prompt="auto"
         touch-action="pan-y" 
         style="width: 100%; height: 100vh;">
         
-        <button slot="ar-button" id="ar-button">
-            🚀 SERGİYİ BAŞLAT (AR)
-        </button>
+        <button id="ar-button">🚀 SERGİYİ BAŞLAT</button>
 
-        <div id="snapshot-button"></div>
+        <div id="snapshot-helper"></div>
 
     </model-viewer>
 
     <script>
-        const modelViewer = document.querySelector("#ar-element");
-        const snapshotButton = document.querySelector("#snapshot-button");
+        const viewer = document.querySelector("#ar-element");
+        const arBtn = document.querySelector("#ar-button");
+        const snapBtn = document.querySelector("#snapshot-helper");
+        const message = document.querySelector("#msg");
 
-        snapshotButton.addEventListener("click", async (event) => {
-            // Tıklamanın büstün arkasına (zemine) geçmesini engeller
-            event.stopPropagation();
-            
-            try {
-                // toDataURL bazen toBlob'dan daha kararlı çalışabilir
-                const url = modelViewer.toDataURL("image/png");
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "Ataturk_Bust_AR.png";
-                a.click();
-                
-                // Kullanıcıya bildirim ver
-                document.querySelector("#status").innerText = "Fotoğraf Kaydedildi!";
-                setTimeout(() => { document.querySelector("#status").innerText = ""; }, 2000);
-            } catch (error) {
-                alert("Tarayıcı güvenliği nedeniyle fotoğraf çekilemedi. Lütfen ekran görüntüsü alınız.");
+        // 1. Sergiyi Başlat butonu tetikleyici
+        arBtn.addEventListener("click", () => {
+            viewer.activateAR();
+        });
+
+        // 2. AR Moduna girildiğini anlama ve butonları değiştirme
+        viewer.addEventListener('ar-status', (event) => {
+            if (event.detail.status === 'session-started') {
+                arBtn.style.display = 'none'; // Başlat butonunu gizle
+                snapBtn.style.display = 'block'; // Fotoğraf butonunu göster
+            } else {
+                arBtn.style.display = 'block';
+                snapBtn.style.display = 'none';
             }
         });
-    </script>
 
+        // 3. Temiz Ekran Görüntüsü Hilesi
+        snapBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            
+            // Tüm butonları gizle
+            snapBtn.style.display = 'none';
+            message.style.display = 'block';
+
+            // 4 saniye sonra her şeyi geri getir
+            setTimeout(() => {
+                snapBtn.style.display = 'block';
+                message.style.display = 'none';
+            }, 4000);
+        });
+    </script>
 </body>
 </html>
